@@ -214,7 +214,7 @@ function App() {
 
   const load = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:3001/diffs/latest')
+      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/diffs/latest')
       if (!response.ok) {
         throw new Error(`Failed to load diff (${response.status})`)
       }
@@ -285,7 +285,7 @@ function App() {
     setQuizSubmitted(false)
     try {
       const quizRules = buildQuizRules(settings.quiz)
-      const response = await fetch('http://localhost:3001/ai/quiz', {
+      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/ai/quiz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -337,7 +337,7 @@ function App() {
 
   const loadQuizResults = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:3001/quiz/results')
+      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/quiz/results')
       if (!response.ok) return
       const data = (await response.json()) as { results?: QuizResult[] }
       if (Array.isArray(data.results)) {
@@ -352,7 +352,7 @@ function App() {
     setCodeReviewLoading(true)
     setCodeReviewError(null)
     try {
-      const response = await fetch('http://localhost:3001/ai/code-review', {
+      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/ai/code-review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -375,6 +375,15 @@ function App() {
       setCodeReviewLoading(false)
     }
   }, [settings.codeReview])
+
+  useEffect(() => {
+    fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/health')
+      .then((res) => {
+        if (res.ok) console.log('Successfully pinged backend on startup.')
+        else console.error('Backend ping failed on startup:', res.status)
+      })
+      .catch((err) => console.error('Failed to ping backend on startup:', err))
+  }, [])
 
   useEffect(() => {
     void load()
@@ -415,7 +424,7 @@ function App() {
     setSelectedFileError(null)
     setSelectedFileDiff(null)
 
-    void fetch(`http://localhost:3001/diffs/file-contents?${params.toString()}`, {
+    void fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/diffs/file-contents?${params.toString()}`, {
       signal: controller.signal,
     })
       .then(async (response) => {
@@ -490,7 +499,7 @@ function App() {
 
   useEffect(() => {
     let isMounted = true
-    fetch('http://localhost:3001/repo')
+    fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/repo')
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
         if (!isMounted || !data || typeof data.path !== 'string') return
@@ -509,7 +518,7 @@ function App() {
       next.delete(filePath)
       return next
     })
-    fetch('http://localhost:3001/git/stage', {
+    fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/git/stage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ filePath }),
@@ -532,7 +541,7 @@ function App() {
       next.delete(filePath)
       return next
     })
-    fetch('http://localhost:3001/git/unstage', {
+    fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/git/unstage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ filePath }),
@@ -553,7 +562,7 @@ function App() {
       if (strictMode && !hasQuizResultForDiff) {
         throw new Error('Complete a quiz before committing.')
       }
-      const response = await fetch('http://localhost:3001/git/commit', {
+      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/git/commit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, strictMode }),
@@ -579,7 +588,7 @@ function App() {
     if (strictMode && !hasQuizResultForDiff) {
       throw new Error('Complete a quiz before pushing.')
     }
-    const response = await fetch('http://localhost:3001/git/push', {
+    const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/git/push', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ strictMode }),
@@ -605,7 +614,7 @@ function App() {
   }, [strictModeNotice])
 
   const handleStash = useCallback(async () => {
-    const response = await fetch('http://localhost:3001/git/stash', {
+    const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/git/stash', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -635,7 +644,7 @@ function App() {
 
     try {
       const instructions = buildExplainInstructions(settings.explain)
-      const response = await fetch('http://localhost:3001/ai/review', {
+      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/ai/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -687,7 +696,7 @@ function App() {
       diffHash: currentDiffHash ?? undefined,
     }
     setQuizResults((prev) => [result, ...prev])
-    fetch('http://localhost:3001/quiz/results', {
+    fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/quiz/results', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ result }),
