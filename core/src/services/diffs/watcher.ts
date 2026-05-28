@@ -73,3 +73,13 @@ export function triggerRefresh() {
     void refresh(currentRepoPath)
   }
 }
+
+export function setManualDiff(repoPath: string, diffText: string) {
+  currentRepoPath = repoPath
+  latest = {
+    unstaged: diffText,
+    staged: '',
+    updatedAt: new Date().toISOString(),
+  }
+}
+

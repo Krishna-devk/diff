@@ -8,6 +8,7 @@ import {
 } from '../services/diffs/patchFiles'
 import { readHeadFile, readIndexFile, readWorkingTreeFile } from '../services/git/gitDiff'
 import { computeDiffHash } from '../services/quizResults'
+import { reconstructFileFromPatch } from '../services/diffs/patchReconstructor'
 
 export const diffsRouter = Router()
 
@@ -49,11 +50,24 @@ async function loadDiffFileContents(
         ? await Promise.all([readHeadFile(repoPath, oldName), readIndexFile(repoPath, newName)])
         : await Promise.all([readIndexFile(repoPath, oldName), readWorkingTreeFile(repoPath, newName)])
 
+    let oldContents = oldContentsRaw
+    let newContents = newContentsRaw
+
+    if (oldContents == null || newContents == null) {
+      const latest = getLatestDiff()
+      const patchText = file.status === 'staged' ? latest.staged : latest.unstaged
+      const reconstructed = reconstructFileFromPatch(patchText, file.path)
+      if (reconstructed) {
+        oldContents = oldContents ?? reconstructed.oldContents
+        newContents = newContents ?? reconstructed.newContents
+      }
+    }
+
     const allowsMissingOld = file.type === 'new'
     const allowsMissingNew = file.type === 'deleted'
 
-    if (oldContentsRaw == null && !allowsMissingOld) return null
-    if (newContentsRaw == null && !allowsMissingNew) return null
+    if (oldContents == null && !allowsMissingOld) return null
+    if (newContents == null && !allowsMissingNew) return null
 
     return {
       status: file.status,
@@ -62,11 +76,11 @@ async function loadDiffFileContents(
       type: file.type,
       oldFile: {
         name: oldName,
-        contents: oldContentsRaw ?? '',
+        contents: oldContents ?? '',
       },
       newFile: {
         name: newName,
-        contents: newContentsRaw ?? '',
+        contents: newContents ?? '',
       },
     }
   } catch (error) {
@@ -137,15 +151,28 @@ diffsRouter.get('/diffs/file-contents', async (req, res) => {
         ? await Promise.all([readHeadFile(repoPath, oldName), readIndexFile(repoPath, newName)])
         : await Promise.all([readIndexFile(repoPath, oldName), readWorkingTreeFile(repoPath, newName)])
 
+    let oldContents = oldContentsRaw
+    let newContents = newContentsRaw
+
+    if (oldContents == null || newContents == null) {
+      const latest = getLatestDiff()
+      const patchText = status === 'staged' ? latest.staged : latest.unstaged
+      const reconstructed = reconstructFileFromPatch(patchText, filePath)
+      if (reconstructed) {
+        oldContents = oldContents ?? reconstructed.oldContents
+        newContents = newContents ?? reconstructed.newContents
+      }
+    }
+
     const allowsMissingOld = type === 'new'
     const allowsMissingNew = type === 'deleted'
 
-    if (oldContentsRaw == null && !allowsMissingOld) {
+    if (oldContents == null && !allowsMissingOld) {
       res.status(404).json({ error: `Could not load old file contents for ${oldName}` })
       return
     }
 
-    if (newContentsRaw == null && !allowsMissingNew) {
+    if (newContents == null && !allowsMissingNew) {
       res.status(404).json({ error: `Could not load new file contents for ${newName}` })
       return
     }
@@ -153,11 +180,11 @@ diffsRouter.get('/diffs/file-contents', async (req, res) => {
     res.json({
       oldFile: {
         name: oldName,
-        contents: oldContentsRaw ?? '',
+        contents: oldContents ?? '',
       },
       newFile: {
         name: newName,
-        contents: newContentsRaw ?? '',
+        contents: newContents ?? '',
       },
     })
   } catch (error) {

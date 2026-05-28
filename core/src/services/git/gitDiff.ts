@@ -7,20 +7,32 @@ const execFileAsync = promisify(execFile)
 const GIT_READ_MAX_BUFFER = 32 * 1024 * 1024
 
 export async function getGitDiff(repoPath: string): Promise<string> {
-  const { stdout } = await execFileAsync('git', ['diff', '--no-color', '--no-ext-diff'], {
-    cwd: repoPath,
-  })
-
-  return stdout
+  try {
+    const { stdout } = await execFileAsync('git', ['diff', '--no-color', '--no-ext-diff'], {
+      cwd: repoPath,
+    })
+    return stdout
+  } catch (error: any) {
+    if (error?.code === 'ENOENT') {
+      console.warn('Warning: local Git CLI not found on this system PATH. Local repo tracking is disabled.')
+    } else {
+      console.error('Failed to run git diff:', error.message)
+    }
+    return ''
+  }
 }
 
 export async function getGitDiffStaged(repoPath: string): Promise<string> {
-  const { stdout } = await execFileAsync('git', ['diff', '--cached', '--no-color', '--no-ext-diff'], {
-    cwd: repoPath,
-  })
-
-  return stdout
+  try {
+    const { stdout } = await execFileAsync('git', ['diff', '--cached', '--no-color', '--no-ext-diff'], {
+      cwd: repoPath,
+    })
+    return stdout
+  } catch (error: any) {
+    return ''
+  }
 }
+
 
 export async function stageFile(repoPath: string, filePath: string): Promise<void> {
   await execFileAsync('git', ['add', '--', filePath], {

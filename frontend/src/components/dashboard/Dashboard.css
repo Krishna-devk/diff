@@ -1,0 +1,238 @@
+.dashboard-loading,
+.dashboard-error {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-inverse);
+  gap: 12px;
+}
+
+.dashboard-error-icon {
+  font-size: 3rem;
+}
+
+.dashboard-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(255, 255, 255, 0.08);
+  border-top: 3px solid var(--text-inverse);
+  border-radius: 50%;
+  animation: spinDash 1s linear infinite;
+  margin-bottom: 8px;
+}
+
+.dashboard-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+.metric-card {
+  padding: 20px;
+  background: rgba(17, 19, 24, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: transparent;
+}
+
+.card-glow-green::before { background: linear-gradient(90deg, #00e676, transparent); }
+.card-glow-blue::before { background: linear-gradient(90deg, #2979ff, transparent); }
+.card-glow-red::before { background: linear-gradient(90deg, #ff1744, transparent); }
+
+.card-glow-green { border-color: rgba(0, 230, 118, 0.15); }
+.card-glow-blue { border-color: rgba(41, 121, 255, 0.15); }
+.card-glow-red { border-color: rgba(255, 23, 68, 0.15); }
+
+.metric-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.metric-icon {
+  font-size: 1.2rem;
+}
+
+.metric-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+.metric-value {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text-inverse);
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.metric-footer {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.leaderboard-section {
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.leaderboard-header {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.leaderboard-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-inverse);
+  margin: 0 0 6px 0;
+}
+
+.leaderboard-header p {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.leaderboard-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.leaderboard-table th {
+  padding: 12px 16px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+.leaderboard-table td {
+  padding: 14px 16px;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.leaderboard-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.leaderboard-row.is-active-user {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.leaderboard-row.is-active-user td {
+  color: #fff;
+  border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.rank-1, .rank-2, .rank-3 {
+  font-size: 1.1rem;
+}
+
+.dev-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dev-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-inverse);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.is-active-user .dev-avatar {
+  background: var(--text-inverse);
+  color: #000;
+}
+
+.dev-name {
+  font-weight: 600;
+}
+
+.dev-score {
+  font-family: monospace;
+  font-size: 0.95rem;
+}
+
+.align-center {
+  text-align: center !important;
+}
+
+.font-orange {
+  color: #ffa500;
+  font-weight: 600;
+}
+
+@keyframes spinDash {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 960px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

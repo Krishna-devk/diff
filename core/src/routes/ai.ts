@@ -1,19 +1,42 @@
 import { Router } from 'express'
 
 import { env } from '../config/env'
-import { getLatestDiff, getRepoPath } from '../services/diffs/watcher'
+import { getLatestDiff, getRepoPath, setManualDiff } from '../services/diffs/watcher'
 import { buildCombinedDiff, extractFileDiff } from '../services/ai/diffContext'
 import { buildQuiz } from '../services/ai/quiz'
 import { answerQuestion, decideScope } from '../services/ai/review'
 import { generateCommitMessage, type CommitMessageStyle } from '../services/ai/commitMessage'
 import { runCodeReview } from '../services/ai/codeReview'
 import { appendQuizResult, computeDiffHash, readQuizResults } from '../services/quizResults'
+import { fetchDiffFromUrl } from '../services/git/gitHubClient'
 
 export const aiRouter = Router()
 
+aiRouter.post('/ai/public-repo', async (req, res) => {
+  const url = typeof req.body?.url === 'string' ? req.body.url.trim() : ''
+  if (!url) {
+    res.status(400).json({ error: 'GitHub PR or Commit URL is required.' })
+    return
+  }
+
+  try {
+    const { diff, repoName } = await fetchDiffFromUrl(url)
+    setManualDiff(repoName, diff)
+    res.json({
+      success: true,
+      repoName,
+      diffLength: diff.length,
+    })
+  } catch (error: any) {
+    console.error('Failed to load public repository diff:', error)
+    res.status(500).json({ error: error.message || 'Failed to load public repository diff.' })
+  }
+})
+
+
 aiRouter.post('/ai/review', async (req, res) => {
-  if (!env.openaiApiKey) {
-    res.status(503).json({ error: 'OPENAI_API_KEY not configured' })
+  if (!env.openaiApiKey && !env.groqApiKey) {
+    res.status(503).json({ error: 'Neither OPENAI_API_KEY nor GROQ_API_KEY is configured' })
     return
   }
 
@@ -62,8 +85,8 @@ aiRouter.post('/ai/review', async (req, res) => {
 })
 
 aiRouter.post('/ai/quiz', async (req, res) => {
-  if (!env.openaiApiKey) {
-    res.status(503).json({ error: 'OPENAI_API_KEY not configured' })
+  if (!env.openaiApiKey && !env.groqApiKey) {
+    res.status(503).json({ error: 'Neither OPENAI_API_KEY nor GROQ_API_KEY is configured' })
     return
   }
 
@@ -87,8 +110,8 @@ aiRouter.post('/ai/quiz', async (req, res) => {
 })
 
 aiRouter.post('/ai/commit-message', async (req, res) => {
-  if (!env.openaiApiKey) {
-    res.status(503).json({ error: 'OPENAI_API_KEY not configured' })
+  if (!env.openaiApiKey && !env.groqApiKey) {
+    res.status(503).json({ error: 'Neither OPENAI_API_KEY nor GROQ_API_KEY is configured' })
     return
   }
 
@@ -130,8 +153,8 @@ aiRouter.post('/ai/commit-message', async (req, res) => {
 })
 
 aiRouter.post('/ai/code-review', async (req, res) => {
-  if (!env.openaiApiKey) {
-    res.status(503).json({ error: 'OPENAI_API_KEY not configured' })
+  if (!env.openaiApiKey && !env.groqApiKey) {
+    res.status(503).json({ error: 'Neither OPENAI_API_KEY nor GROQ_API_KEY is configured' })
     return
   }
 
@@ -161,6 +184,31 @@ aiRouter.post('/ai/code-review', async (req, res) => {
   } catch (error) {
     console.error('AI code review failed:', error)
     res.status(500).json({ error: 'AI code review failed' })
+  }
+})
+
+aiRouter.post('/ai/architecture-impact', async (req, res) => {
+  if (!env.openaiApiKey && !env.groqApiKey) {
+    res.status(503).json({ error: 'Neither OPENAI_API_KEY nor GROQ_API_KEY is configured' })
+    return
+  }
+
+  const repoPath = getRepoPath()
+  const latest = getLatestDiff()
+  const fullDiff = buildCombinedDiff(latest)
+
+  if (!fullDiff.trim()) {
+    res.status(400).json({ error: 'No changes to analyze' })
+    return
+  }
+
+  try {
+    const { analyzeArchitectureImpact } = await import('../services/ai/architectureImpact')
+    const result = await analyzeArchitectureImpact(fullDiff, repoPath)
+    res.json(result)
+  } catch (error) {
+    console.error('AI architecture impact failed:', error)
+    res.status(500).json({ error: 'AI architecture impact failed' })
   }
 })
 

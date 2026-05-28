@@ -6,6 +6,9 @@ import { DiffToolbar } from './components/diff/DiffToolbar'
 import { DiffViewer } from './components/diff/DiffViewer'
 import { SettingsDrawer } from './components/settings/SettingsDrawer'
 import { Sidebar, type FileStatus, type SidebarFile } from './components/sidebar/Sidebar'
+import { ImpactMapper } from './components/impact/ImpactMapper'
+import { BriefingPlayer } from './components/audio/BriefingPlayer'
+import { Dashboard } from './components/dashboard/Dashboard'
 import {
   buildExplainInstructions,
   buildQuizRules,
@@ -88,7 +91,9 @@ function App() {
   const [pendingUnstage, setPendingUnstage] = useState<Set<string>>(new Set())
   const [repoPath, setRepoPath] = useState<string | null>(null)
   const [reviewOpen, setReviewOpen] = useState(true)
-  const [reviewMode, setReviewMode] = useState<'explain' | 'quiz' | 'review'>('explain')
+  const [reviewMode, setReviewMode] = useState<
+    'explain' | 'quiz' | 'review' | 'impact' | 'podcast' | 'stats'
+  >('explain')
   const [reviewInput, setReviewInput] = useState('')
   const [reviewLog, setReviewLog] = useState<
     { id: number; role: 'user' | 'assistant'; content: string }[]
@@ -396,9 +401,8 @@ function App() {
     if (selectedFile.prevName) {
       params.set('prevName', selectedFile.prevName)
     }
-    const cacheKey = `${currentDiffHash ?? ''}:${selectedFile.status}:${selectedFile.path}:${
-      selectedFile.prevName ?? ''
-    }`
+    const cacheKey = `${currentDiffHash ?? ''}:${selectedFile.status}:${selectedFile.path}:${selectedFile.prevName ?? ''
+      }`
     const cachedFileDiff = fileDiffCacheRef.current.get(cacheKey)
     if (cachedFileDiff) {
       setSelectedFileLoading(false)
@@ -821,6 +825,33 @@ function App() {
                 >
                   Review
                 </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={reviewMode === 'impact'}
+                  className={reviewMode === 'impact' ? 'active' : undefined}
+                  onClick={() => setReviewMode('impact')}
+                >
+                  Impact
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={reviewMode === 'podcast'}
+                  className={reviewMode === 'podcast' ? 'active' : undefined}
+                  onClick={() => setReviewMode('podcast')}
+                >
+                  Podcast
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={reviewMode === 'stats'}
+                  className={reviewMode === 'stats' ? 'active' : undefined}
+                  onClick={() => setReviewMode('stats')}
+                >
+                  Leaderboard
+                </button>
               </div>
               <div className="review-body">
                 {reviewMode === 'explain' && (
@@ -879,9 +910,8 @@ function App() {
                                             return (
                                               <div
                                                 key={`${question.id}:${optionIndex}`}
-                                                className={`quiz-option-result${isSelected ? ' selected' : ''}${
-                                                  isCorrect ? ' correct' : ''
-                                                }`}
+                                                className={`quiz-option-result${isSelected ? ' selected' : ''}${isCorrect ? ' correct' : ''
+                                                  }`}
                                               >
                                                 <span>{option}</span>
                                               </div>
@@ -1005,6 +1035,15 @@ function App() {
                       </div>
                     )}
                   </div>
+                )}
+                {reviewMode === 'impact' && (
+                  <ImpactMapper hasChanges={hasChanges} triggerReloadKey={quizResults.length} />
+                )}
+                {reviewMode === 'podcast' && (
+                  <BriefingPlayer hasChanges={hasChanges} triggerReloadKey={quizResults.length} />
+                )}
+                {reviewMode === 'stats' && (
+                  <Dashboard triggerReloadKey={quizResults.length} />
                 )}
               </div>
               {reviewMode === 'review' && (

@@ -58,10 +58,40 @@ export function Sidebar({
   const [stashLoading, setStashLoading] = useState(false)
   const [stashError, setStashError] = useState<string | null>(null)
   const [stashConfirmOpen, setStashConfirmOpen] = useState(false)
+
+  // Public Git URL State
+  const [publicUrl, setPublicUrl] = useState('')
+  const [publicLoading, setPublicLoading] = useState(false)
+  const [publicError, setPublicError] = useState<string | null>(null)
+
   const canCommit = Boolean(repoPath) && stagedFiles.length > 0
   const canCommitStrict = canCommit && (!strictMode || hasQuizResult)
   const canPush = Boolean(repoPath) && (!strictMode || hasQuizResult)
   const hasChanges = totalFiles > 0
+
+  const handleLoadPublicUrl = async () => {
+    const url = publicUrl.trim()
+    if (!url) return
+    setPublicLoading(true)
+    setPublicError(null)
+    try {
+      const response = await fetch('http://localhost:3001/ai/public-repo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      })
+      if (!response.ok) {
+        const data = (await response.json()) as { error?: string }
+        throw new Error(data.error || 'Failed to load public repository.')
+      }
+      setPublicUrl('')
+      window.location.reload()
+    } catch (error) {
+      setPublicError(error instanceof Error ? error.message : 'Failed to load URL.')
+    } finally {
+      setPublicLoading(false)
+    }
+  }
 
   const handleCommit = async () => {
     const message = commitMessage.trim()
@@ -149,7 +179,27 @@ export function Sidebar({
       <div className="sidebar-header">
         <div className="sidebar-title">DIFFX</div>
       </div>
+      <div className="sidebar-public-url">
+        <input
+          type="text"
+          value={publicUrl}
+          onChange={(e) => setPublicUrl(e.target.value)}
+          placeholder="GitHub PR/Commit URL..."
+          disabled={publicLoading}
+          className="public-url-input"
+        />
+        <button
+          type="button"
+          onClick={handleLoadPublicUrl}
+          disabled={publicLoading || !publicUrl.trim()}
+          className="public-url-btn"
+        >
+          {publicLoading ? 'Loading...' : 'Load'}
+        </button>
+      </div>
+      {publicError ? <div className="public-url-error">{publicError}</div> : null}
       {repoPath ? <div className="sidebar-cwd">{repoPath}</div> : null}
+
       <div className="sidebar-content">
         {totalFiles === 0 ? (
           <div className="sidebar-empty">No file changes</div>
