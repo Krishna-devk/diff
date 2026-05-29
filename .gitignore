@@ -9,7 +9,7 @@ build/
 
 # Environment files
 .env
-
+frontend/.env
 # Logs
 logs/
 *.log
