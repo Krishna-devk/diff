@@ -45,7 +45,7 @@ export function ImpactMapper({ hasChanges, triggerReloadKey }: ImpactMapperProps
     setError(null)
     setSelectedNode(null)
 
-    fetch('http://localhost:3001/ai/architecture-impact', {
+    fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/ai/architecture-impact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })

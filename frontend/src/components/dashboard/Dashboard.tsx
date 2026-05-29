@@ -32,7 +32,7 @@ export function Dashboard({ triggerReloadKey }: DashboardProps) {
     setLoading(true)
     setError(null)
 
-    fetch('http://localhost:3001/stats/leaderboard')
+    fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/stats/leaderboard')
       .then((res) => {
         if (!res.ok) throw new Error(`Failed to load leaderboard stats (${res.status})`)
         return res.json() as Promise<StatsPayload>

@@ -45,7 +45,7 @@ export function BriefingPlayer({ hasChanges, triggerReloadKey }: BriefingPlayerP
     setCurrentTime(0)
 
     // Generate a beautiful, concise architectural walk-through script via Llama-3!
-    fetch('http://localhost:3001/ai/review', {
+    fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/ai/review', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

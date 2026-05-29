@@ -75,7 +75,7 @@ export function Sidebar({
     setPublicLoading(true)
     setPublicError(null)
     try {
-      const response = await fetch('http://localhost:3001/ai/public-repo', {
+      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/ai/public-repo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
@@ -129,7 +129,7 @@ export function Sidebar({
     setAutoGenerateLoading(true)
     setCommitError(null)
     try {
-      const response = await fetch('http://localhost:3001/ai/commit-message', {
+      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/ai/commit-message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
