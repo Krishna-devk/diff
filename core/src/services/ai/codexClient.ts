@@ -7,7 +7,7 @@ export interface CodexThread {
 class CustomCodexThread implements CodexThread {
   private model: string
 
-  constructor(model: string = 'llama-3.3-70b-specdec') {
+  constructor(model: string = 'llama-3.3-70b-versatile') {
     this.model = model
   }
 

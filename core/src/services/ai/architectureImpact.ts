@@ -40,7 +40,7 @@ export async function analyzeArchitectureImpact(
   fullDiff: string,
   repoPath: string | null
 ): Promise<ArchitectureImpactPayload> {
-  const thread = getCodexThread('llama-3.3-70b-specdec')
+  const thread = getCodexThread('llama-3.3-70b-versatile')
 
   const schema = `{
     "severity": "critical" | "warning" | "low",
