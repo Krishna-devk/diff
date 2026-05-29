@@ -81,8 +81,19 @@ export function Sidebar({
         body: JSON.stringify({ url }),
       })
       if (!response.ok) {
-        const data = (await response.json()) as { error?: string }
-        throw new Error(data.error || 'Failed to load public repository.')
+        let errorMessage = `Failed to load public repository (${response.status})`
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            const data = (await response.json()) as { error?: string }
+            if (data?.error) errorMessage = data.error
+          } catch {
+            // Ignore JSON parse error in error block
+          }
+        } else if (response.status === 404) {
+          errorMessage = 'API endpoint not found (404). Please ensure VITE_API_URL is configured to point to your Render backend URL, not your Vercel frontend URL.'
+        }
+        throw new Error(errorMessage)
       }
       setPublicUrl('')
       window.location.reload()
@@ -142,8 +153,23 @@ export function Sidebar({
         }),
       })
       if (!response.ok) {
-        const data = (await response.json()) as { error?: string }
-        throw new Error(data.error || `Failed to generate commit message (${response.status})`)
+        let errorMessage = `Failed to generate commit message (${response.status})`
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            const data = (await response.json()) as { error?: string }
+            if (data?.error) errorMessage = data.error
+          } catch {
+            // Ignore
+          }
+        } else if (response.status === 404) {
+          errorMessage = 'API endpoint not found (404). Please ensure VITE_API_URL is configured to point to your Render backend URL, not your Vercel frontend URL.'
+        }
+        throw new Error(errorMessage)
+      }
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server did not return JSON. Please check your backend configuration.')
       }
       const data = (await response.json()) as { subject?: string; body?: string | null }
       if (typeof data.subject === 'string') {

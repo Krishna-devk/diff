@@ -216,7 +216,14 @@ function App() {
     try {
       const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/diffs/latest')
       if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('API endpoint not found (404). Please ensure VITE_API_URL is configured to point to your Render backend URL, not your Vercel frontend URL.')
+        }
         throw new Error(`Failed to load diff (${response.status})`)
+      }
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server did not return JSON. Please ensure VITE_API_URL is configured to point to your Render backend URL, not your Vercel frontend URL.')
       }
       const data = (await response.json()) as LatestDiffResponse
       const staged = data.staged ?? ''
